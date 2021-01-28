@@ -1,8 +1,7 @@
 package uk.gov.hmcts.reform.roleassignment.domain.service.queryroles;
 
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +15,9 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class QueryRoleAssignmentOrchestrator {
 
-    private static final Logger logger = LoggerFactory.getLogger(QueryRoleAssignmentOrchestrator.class);
     private final PersistenceService persistenceService;
 
 
@@ -42,11 +41,9 @@ public class QueryRoleAssignmentOrchestrator {
             "Total-Records",
             Long.toString(persistenceService.getTotalRecords())
         );
-        logger.info(String.format(
-            " >> retrieveRoleAssignmentsByQueryRequest execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of retrieveRoleAssignmentsByQueryRequest() : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(),startTime)))
+        );
         return ResponseEntity.status(HttpStatus.OK).headers(responseHeaders).body(
             new RoleAssignmentResource(assignmentList));
 

@@ -20,6 +20,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,6 +67,7 @@ class QueryRoleAssignmentOrchestratorTest {
                                                                                                   "asc");
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getHeaders().get("Total-Records").get(0).equals("10"));
         assertNotNull(result.getBody());
     }
 

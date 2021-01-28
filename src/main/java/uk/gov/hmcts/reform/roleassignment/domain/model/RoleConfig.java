@@ -1,5 +1,11 @@
 package uk.gov.hmcts.reform.roleassignment.domain.model;
 
+import com.fasterxml.jackson.databind.type.CollectionType;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import uk.gov.hmcts.reform.roleassignment.domain.model.enums.RoleCategory;
+import uk.gov.hmcts.reform.roleassignment.util.JacksonUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -7,13 +13,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.type.CollectionType;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import uk.gov.hmcts.reform.roleassignment.domain.model.enums.RoleCategory;
-import uk.gov.hmcts.reform.roleassignment.util.JacksonUtils;
 
 @Slf4j
 public class RoleConfig {

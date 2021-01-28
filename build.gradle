@@ -262,6 +262,7 @@ sonarqube {
       "**/SwaggerConfiguration.java," +
       "**/MutableHttpServletRequest.java," +
       "src/main/java/uk/gov/hmcts/reform/roleassignment/*Application.java," +
+      "src/main/java/uk/gov/hmcts/reform/roleassignment/util/Swagger2SpringBoot.java," +
       "src/main/java/uk/gov/hmcts/reform/roleassignment/config/**"
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
