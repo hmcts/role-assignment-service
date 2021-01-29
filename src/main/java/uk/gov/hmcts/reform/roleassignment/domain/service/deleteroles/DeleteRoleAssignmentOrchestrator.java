@@ -1,9 +1,8 @@
 package uk.gov.hmcts.reform.roleassignment.domain.service.deleteroles;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -28,9 +27,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class DeleteRoleAssignmentOrchestrator {
-
-    private static final Logger logger = LoggerFactory.getLogger(DeleteRoleAssignmentOrchestrator.class);
 
     private PersistenceService persistenceService;
     private ParseRequestService parseRequestService;
@@ -66,8 +64,7 @@ public class DeleteRoleAssignmentOrchestrator {
     public ResponseEntity<Void> deleteRoleAssignmentByProcessAndReference(String process,
                                                                             String reference) {
         long startTime = System.currentTimeMillis();
-        logger.info(String.format("deleteRoleAssignmentByProcessAndReference execution started at %s", startTime));
-
+        log.info(">> deleteRoleAssignmentByProcessAndReference method execution started at {}", startTime);
         List<RoleAssignment> requestedRoles;
 
         //1. create the request Object
@@ -101,11 +98,8 @@ public class DeleteRoleAssignmentOrchestrator {
         }
 
         ResponseEntity<Void> responseEntity = performOtherStepsForDelete("", requestedRoles);
-        logger.info(String.format(
-            " >> deleteRoleAssignmentByProcessAndReference execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of deleteRoleAssignmentByProcessAndReference () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime))));
         return responseEntity;
     }
 
@@ -142,8 +136,7 @@ public class DeleteRoleAssignmentOrchestrator {
     private ResponseEntity<Void> performOtherStepsForDelete(String actorId,
                                                                  List<RoleAssignment> requestedRoles) {
         long startTime = System.currentTimeMillis();
-        logger.info(String.format("performOtherStepsForDelete execution started at %s", startTime));
-
+        log.info(">> performOtherStepsForDelete method execution started at {}", startTime);
 
         //4. call validation rule
         validationByDrool(requestedRoles);
@@ -153,11 +146,9 @@ public class DeleteRoleAssignmentOrchestrator {
 
         //6. check status updated by drools and take decision
         checkAllDeleteApproved(assignmentRequest, actorId);
-        logger.info(String.format(
-            " >> performOtherStepsForDelete execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of performOtherStepsForDelete () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime)))
+        );
         if (assignmentRequest.getRequest().getStatus().equals(Status.REJECTED)) {
             return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
         } else {
@@ -179,12 +170,9 @@ public class DeleteRoleAssignmentOrchestrator {
 
         //calling drools rules for validation
         validationModelService.validateRequest(assignmentRequest);
-        logger.info(String.format(
-            " >> validationByDrool execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
-
+        log.info(">> Execution time of validationByDrool () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime)))
+        );
     }
 
     private void updateStatusAndPersist(Request request) {
@@ -232,11 +220,9 @@ public class DeleteRoleAssignmentOrchestrator {
             // Update request status to REJECTED
             updateRequestStatus(validatedAssignmentRequest, Status.REJECTED);
         }
-        logger.info(String.format(
-            " >> checkAllDeleteApproved execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of checkAllDeleteApproved () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime)))
+        );
     }
 
     public void deleteLiveRecords(AssignmentRequest validatedAssignmentRequest, String actorId) {

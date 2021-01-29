@@ -156,11 +156,19 @@ class ValidationUtilTest {
 
     @Test
     void shouldValidateAssignmentRequest_clt() throws IOException, ParseException {
+        AssignmentRequest assignmentRequest = TestDataBuilder.buildAssignmentRequest(Status.CREATED, Status.LIVE,
+                                                                   true);
         Assertions.assertDoesNotThrow(() ->
-            ValidationUtil.validateAssignmentRequest(TestDataBuilder.buildAssignmentRequest(Status.CREATED, Status.LIVE,
-                                                                                            true
-            ))
-        );
+            ValidationUtil.validateAssignmentRequest(assignmentRequest));
+    }
+
+    @Test
+    void shouldValidateAssignmentRequest_invalid_assignerId() throws IOException, ParseException {
+        AssignmentRequest assignmentRequest = TestDataBuilder.buildAssignmentRequest(Status.CREATED, Status.LIVE,
+                                                                                     true);
+        assignmentRequest.getRequest().setAssignerId("@@@@");
+        Assertions.assertThrows(BadRequestException.class, () ->
+            ValidationUtil.validateAssignmentRequest(assignmentRequest));
     }
 
     @Test
@@ -340,6 +348,13 @@ class ValidationUtilTest {
 
     @Test
     void shouldThrowBadReq_invalidCaseIdLength() {
+        Assertions.assertThrows(BadRequestException.class, () ->
+            ValidationUtil.validateCaseId("123456789012345")
+        );
+    }
+
+    @Test
+    void shouldThrowBadReq_sanitiseCorrelationId_input_not_null_invalid() {
         Assertions.assertThrows(BadRequestException.class, () ->
             ValidationUtil.validateCaseId("123456789012345")
         );

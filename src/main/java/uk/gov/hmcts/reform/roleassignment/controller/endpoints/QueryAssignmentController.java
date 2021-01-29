@@ -5,8 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -25,9 +24,8 @@ import static uk.gov.hmcts.reform.roleassignment.auditlog.AuditOperationType.SEA
 
 @Api(value = "roles")
 @RestController
+@Slf4j
 public class QueryAssignmentController {
-
-    private static final Logger logger = LoggerFactory.getLogger(QueryAssignmentController.class);
     private final QueryRoleAssignmentOrchestrator queryRoleAssignmentOrchestrator;
 
     public QueryAssignmentController(QueryRoleAssignmentOrchestrator queryRoleAssignmentOrchestrator) {
@@ -72,11 +70,8 @@ public class QueryAssignmentController {
         long startTime = System.currentTimeMillis();
         ResponseEntity<RoleAssignmentResource> response = queryRoleAssignmentOrchestrator
             .retrieveRoleAssignmentsByQueryRequest(queryRequest, pageNumber, size, sort, direction);
-        logger.info(String.format(
-            " >> retrieveRoleAssignmentsByQueryRequest execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of retrieveRoleAssignmentsByQueryRequest () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime))));
         return response;
     }
 }

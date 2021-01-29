@@ -5,6 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import static uk.gov.hmcts.reform.roleassignment.auditlog.AuditOperationType.CRE
 
 @Api(value = "roles")
 @RestController
+@Slf4j
 public class CreateAssignmentController {
 
     private final CreateRoleAssignmentOrchestrator createRoleAssignmentOrchestrator;
@@ -83,11 +85,8 @@ public class CreateAssignmentController {
         long startTime = System.currentTimeMillis();
         ResponseEntity<RoleAssignmentRequestResource> response = createRoleAssignmentOrchestrator
             .createRoleAssignment(assignmentRequest);
-        logger.info(String.format(
-            " >> createRoleAssignment execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of createRoleAssignment () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime))));
         return response;
     }
 }

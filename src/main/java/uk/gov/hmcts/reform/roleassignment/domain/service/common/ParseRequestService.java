@@ -1,9 +1,8 @@
 package uk.gov.hmcts.reform.roleassignment.domain.service.common;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -31,10 +30,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class ParseRequestService {
-
-    private static final Logger logger = LoggerFactory.getLogger(ParseRequestService.class);
-
     @Autowired
     private SecurityUtils securityUtils;
 
@@ -44,7 +41,7 @@ public class ParseRequestService {
     public AssignmentRequest parseRequest(AssignmentRequest assignmentRequest, RequestType requestType)
         throws ParseException {
         long startTime = System.currentTimeMillis();
-        logger.info(String.format("parseRequest execution started at %s", startTime));
+        log.info(">> parseRequest method execution started at {}", startTime);
         Request request = assignmentRequest.getRequest();
         ValidationUtil.validateAssignmentRequest(assignmentRequest);
 
@@ -75,11 +72,8 @@ public class ParseRequestService {
         AssignmentRequest parsedRequest = new AssignmentRequest(new Request(), Collections.emptyList());
         parsedRequest.setRequest(request);
         parsedRequest.setRequestedRoles(requestedAssignments);
-        logger.info(String.format(
-            " >> parseRequest execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of parseRequest () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime))));
         return parsedRequest;
     }
 

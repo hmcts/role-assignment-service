@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.roleassignment.domain.service.common;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +51,7 @@ import static uk.gov.hmcts.reform.roleassignment.data.RoleAssignmentEntitySpecif
 import static uk.gov.hmcts.reform.roleassignment.data.RoleAssignmentEntitySpecifications.searchByValidDate;
 
 @Service
+@Slf4j
 public class PersistenceService {
 
     private static final Logger logger = LoggerFactory.getLogger(PersistenceService.class);
@@ -160,11 +162,8 @@ public class PersistenceService {
         List<RoleAssignment> roleAssignmentList = historyEntities.stream().map(historyEntity -> persistenceUtil
             .convertHistoryEntityToRoleAssignment(historyEntity)).collect(
             Collectors.toList());
-        logger.info(String.format(
-            " >> getAssignmentsByProcess execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of getAssignmentsByProcess () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime))));
         return roleAssignmentList;
 
     }
@@ -248,12 +247,8 @@ public class PersistenceService {
                 .collect(Collectors.toList());
 
         }
-
-        logger.info(String.format(
-            " >> retrieveRoleAssignmentsByQueryRequest execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of retrieveRoleAssignmentsByQueryRequest () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime))));
         return roleAssignmentList;
     }
 

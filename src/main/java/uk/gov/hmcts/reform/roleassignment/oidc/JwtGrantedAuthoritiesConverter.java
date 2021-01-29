@@ -1,12 +1,5 @@
 package uk.gov.hmcts.reform.roleassignment.oidc;
 
-import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.ACCESS_TOKEN;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -15,6 +8,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.idam.client.models.UserInfo;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.ACCESS_TOKEN;
 
 /**
  * This class is used to parse the JWT Access token and returns the user info with GrantedAuthorities.
@@ -49,11 +49,8 @@ public class JwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection
             authorities = extractAuthorityFromClaims(userInfo.getRoles());
 
         }
-        log.info(String.format(
-            " >> convert execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of JwtGrantedAuthoritiesConverter () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime))));
         return authorities;
     }
 

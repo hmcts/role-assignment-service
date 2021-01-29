@@ -1,8 +1,7 @@
 package uk.gov.hmcts.reform.roleassignment.auditlog;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -12,11 +11,8 @@ import uk.gov.hmcts.reform.roleassignment.auditlog.aop.AuditContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+@Slf4j
 public class AuditInterceptor extends HandlerInterceptorAdapter {
-
-    private static final Logger LOG = LoggerFactory.getLogger(AuditInterceptor.class);
-
     public static final String REQUEST_ID = "request-id";
 
     private final AuditService auditService;
@@ -33,23 +29,20 @@ public class AuditInterceptor extends HandlerInterceptorAdapter {
                                 @Nullable Exception ex) {
         long startTime = System.currentTimeMillis();
         if (applicationParams.isAuditLogEnabled() && hasAuditAnnotation(handler)) {
-            LOG.info(String.format("afterCompletion execution started at %s", startTime));
+            log.info(">> afterCompletion method execution started at {}", startTime);
             if (!applicationParams.getAuditLogIgnoreStatuses().contains(response.getStatus())) {
                 AuditContext auditContext = AuditContextHolder.getAuditContext();
                 auditContext = populateHttpSemantics(auditContext, request, response);
                 try {
                     auditService.audit(auditContext);
                 } catch (Exception e) {  // Ignoring audit failures
-                    LOG.error("Error while auditing the request data:{}", e.getMessage());
+                    log.error("Error while auditing the request data:{}", e.getMessage());
                 }
             }
             AuditContextHolder.remove();
         }
-        LOG.info(String.format(
-            " >> afterCompletion execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
+        log.info(">> Execution time of afterCompletion () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(), startTime))));
     }
 
     private boolean hasAuditAnnotation(Object handler) {

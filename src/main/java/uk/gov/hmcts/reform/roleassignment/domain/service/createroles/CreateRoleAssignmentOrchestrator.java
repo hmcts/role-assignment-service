@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.roleassignment.domain.service.createroles;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -28,8 +26,6 @@ import static uk.gov.hmcts.reform.roleassignment.domain.model.enums.Status.APPRO
 @Slf4j
 @Service
 public class CreateRoleAssignmentOrchestrator {
-    private static final Logger logger = LoggerFactory.getLogger(CreateRoleAssignmentOrchestrator.class);
-
     private ParseRequestService parseRequestService;
     private PrepareResponseService prepareResponseService;
     private CreateRoleAssignmentService createRoleAssignmentService;
@@ -57,6 +53,7 @@ public class CreateRoleAssignmentOrchestrator {
     public ResponseEntity<RoleAssignmentRequestResource> createRoleAssignment(AssignmentRequest roleAssignmentRequest)
         throws ParseException {
         long startTime = System.currentTimeMillis();
+        log.info(">> createRoleAssignment method execution started at {}", startTime);
         try {
             AssignmentRequest existingAssignmentRequest;
             createRoleAssignmentService = new CreateRoleAssignmentService(
@@ -82,8 +79,8 @@ public class CreateRoleAssignmentOrchestrator {
 
             //Check replace existing true/false
             if (request.isReplaceExisting()) {
-                long replaceExisting = System.currentTimeMillis();
-                logger.info(String.format("replaceExisting Inner Method execution started at %s", replaceExisting));
+                long startingTime = System.currentTimeMillis();
+                log.info(">> replaceExisting Inner Method execution started at {}", startingTime);
                 //retrieve existing assignments and prepared temp request
                 existingAssignmentRequest = createRoleAssignmentService
                     .retrieveExistingAssignments(parsedAssignmentRequest);
@@ -123,22 +120,19 @@ public class CreateRoleAssignmentOrchestrator {
                     // Don't throw the exception, as we need to build the response as Http:201
                     log.error("context", e);
                 }
-                logger.info(String.format(
-                    " >> replaceExisting Inner Method execution finished at %s . Time taken = %s milliseconds",
-                    System.currentTimeMillis(),
-                    System.currentTimeMillis() - replaceExisting
-                ));
+                log.info(">> Execution time of replaceExisting Inner Method () : {} ms",
+                         ((Math.subtractExact(System.currentTimeMillis(), startingTime)))
+                );
 
             } else {
-                long newAssignment = System.currentTimeMillis();
+                long newAssignmentTime = System.currentTimeMillis();
+                log.info(">> newAssignment method execution started at {}", newAssignmentTime);
                 //Save requested role in history table with CREATED and Approved Status
                 createRoleAssignmentService.createNewAssignmentRecords(parsedAssignmentRequest);
                 createRoleAssignmentService.checkAllApproved(parsedAssignmentRequest);
-                logger.info(String.format(
-                    " >> newAssignment execution finished at %s . Time taken = %s milliseconds",
-                    System.currentTimeMillis(),
-                    System.currentTimeMillis() - newAssignment
-                ));
+                log.info(">> Execution time of newAssignment Inner Method () : {} ms",
+                         ((Math.subtractExact(System.currentTimeMillis(), newAssignmentTime)))
+                );
             }
 
             ResponseEntity<RoleAssignmentRequestResource> result = prepareResponseService
@@ -148,12 +142,9 @@ public class CreateRoleAssignmentOrchestrator {
             return result;
         } finally {
             flushGlobalVariables();
-            logger.info(String.format(
-                " >> createRoleAssignment in orchestrator execution finished at %s . Time taken = %s milliseconds",
-                System.currentTimeMillis(),
-                System.currentTimeMillis() - startTime
-            ));
-
+            log.info(">> Execution time of createRoleAssignment in orchestrator () : {} ms",
+                     ((Math.subtractExact(System.currentTimeMillis(), startTime)))
+            );
         }
 
     }
@@ -192,8 +183,7 @@ public class CreateRoleAssignmentOrchestrator {
                                                 AssignmentRequest parsedAssignmentRequest)
         throws IllegalAccessException, InvocationTargetException {
         long startTime = System.currentTimeMillis();
-        logger.info(String.format("identifyAssignmentsToBeUpdated execution started at %s", startTime));
-
+        log.info(">> identifyAssignmentsToBeUpdated execution started at {}", startTime);
 
         //update the existingAssignmentRequest with Only need to be removed record
         if (!createRoleAssignmentService.needToDeleteRoleAssignments.isEmpty()) {
@@ -214,11 +204,8 @@ public class CreateRoleAssignmentOrchestrator {
 
         //Checking all assignments has DELETE_APPROVED status to create new entries of assignment records
         createRoleAssignmentService.checkAllDeleteApproved(existingAssignmentRequest, parsedAssignmentRequest);
-        logger.info(String.format(
-            " >> identifyAssignmentsToBeUpdated execution finished at %s . Time taken = %s milliseconds",
-            System.currentTimeMillis(),
-            System.currentTimeMillis() - startTime
-        ));
-
+        log.info(">> Execution time of identifyAssignmentsToBeUpdated () : {} ms",
+                 ((Math.subtractExact(System.currentTimeMillis(),startTime)))
+        );
     }
 }
