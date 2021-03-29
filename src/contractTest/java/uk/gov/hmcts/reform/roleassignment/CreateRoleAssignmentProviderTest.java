@@ -32,6 +32,8 @@ import static org.mockito.Mockito.when;
 @Import(RoleAssignmentProviderTestConfiguration.class)
 public class CreateRoleAssignmentProviderTest {
 
+    //Test message for Luke test branch
+
     @Autowired
     private PersistenceService persistenceService;
 
