@@ -24,6 +24,7 @@ import java.text.ParseException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static uk.gov.hmcts.reform.roleassignment.domain.model.enums.Status.APPROVED;
 
@@ -76,7 +77,7 @@ public class CreateRoleAssignmentOrchestrator {
 
             //2. Call persistence service to store only the request
             requestEntity = createRoleAssignmentService.persistInitialRequest(parsedAssignmentRequest.getRequest());
-            requestEntity.setHistoryEntities(new HashSet<>());
+            requestEntity.setHistoryEntities(new CopyOnWriteArraySet<>());
             request = parsedAssignmentRequest.getRequest();
             request.setId(requestEntity.getId());
             createRoleAssignmentService.setRequestEntity(requestEntity);

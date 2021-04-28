@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
-
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -74,6 +75,7 @@ public class RequestEntity {
     @OneToMany(
         fetch = FetchType.LAZY,
         mappedBy = "requestEntity")
+    @NotFound(action = NotFoundAction.IGNORE)
     private Set<HistoryEntity> historyEntities;
 
 

@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.roleassignment.data.ActorCacheEntity;
 import uk.gov.hmcts.reform.roleassignment.data.ActorCacheRepository;
@@ -26,6 +25,7 @@ import uk.gov.hmcts.reform.roleassignment.domain.model.Assignment;
 import uk.gov.hmcts.reform.roleassignment.domain.model.QueryRequest;
 import uk.gov.hmcts.reform.roleassignment.domain.model.Request;
 import uk.gov.hmcts.reform.roleassignment.domain.model.RoleAssignment;
+import uk.gov.hmcts.reform.roleassignment.util.JacksonUtils;
 import uk.gov.hmcts.reform.roleassignment.util.PersistenceUtil;
 
 import javax.persistence.EntityManager;
@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.time.LocalTime.now;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static uk.gov.hmcts.reform.roleassignment.data.RoleAssignmentEntitySpecifications.searchByActorIds;
 import static uk.gov.hmcts.reform.roleassignment.data.RoleAssignmentEntitySpecifications.searchByAttributes;
@@ -101,42 +102,84 @@ public class PersistenceService {
 
     }
 
-    public void updateRequest(RequestEntity requestEntity) {
+    @Transactional
+    public RequestEntity updateRequest(RequestEntity requestEntity) {
         //Persist the request entity
-        requestRepository.save(requestEntity);
+        try {
+            requestEntity = requestRepository.save(requestEntity);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return requestEntity;
     }
 
     @Transactional
     public void persistHistoryEntities(Collection<HistoryEntity> historyEntityList) {
-        historyEntityList.forEach(historyEntity -> entityManager.persist(historyEntity));
-        entityManager.flush();
+        historyEntityList.forEach(historyEntity -> {
+                    try {
+                        entityManager.merge(historyEntity);
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                                  }
+        );
+       // entityManager.flush();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    /*@Transactional
     public void persistRoleAssignments(Collection<RoleAssignment> roleAssignments) {
         //Persist the role assignment entity
         Set<RoleAssignmentEntity> roleAssignmentEntities = roleAssignments.stream().map(
             roleAssignment -> persistenceUtil.convertRoleAssignmentToEntity(roleAssignment, true)
         ).collect(Collectors.toSet());
-        roleAssignmentEntities.forEach(roleAssignmentEntity -> entityManager.persist(roleAssignmentEntity));
-        entityManager.flush();
+        roleAssignmentEntities.forEach(roleAssignmentEntity -> entityManager.merge(roleAssignmentEntity));
+       // entityManager.flush();
+    }*/
+
+    @Transactional
+    public void persistRoleAssignment(RoleAssignment roleAssignment) {
+        //Persist the role assignment entity
+        RoleAssignmentEntity entity = persistenceUtil.convertRoleAssignmentToEntity(roleAssignment,true);
+        roleAssignmentRepository.save(entity);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    /*@Transactional
     public void persistActorCache(Collection<RoleAssignment> roleAssignments) {
         roleAssignments.stream().forEach(roleAssignment -> {
-            ActorCacheEntity actorCacheEntity  = persistenceUtil
-                .convertActorCacheToEntity(prepareActorCache(roleAssignment));
+            ActorCacheEntity actorCacheEntity;
             ActorCacheEntity existingActorCache = actorCacheRepository.findByActorId(roleAssignment.getActorId());
             if (existingActorCache != null) {
-                actorCacheEntity.setEtag(existingActorCache.getEtag());
-                entityManager.merge(actorCacheEntity);
+                existingActorCache.setRoleAssignmentResponse(JacksonUtils.convertValueJsonNode(now()));
+                entityManager.merge(existingActorCache);
             } else {
+                actorCacheEntity =  persistenceUtil
+                    .convertActorCacheToEntity(prepareActorCache(roleAssignment));
                 entityManager.persist(actorCacheEntity);
             }
         });
         entityManager.flush();
 
+    }*/
+
+    @Transactional
+    public  void  persistActorCache(RoleAssignment roleAssignment) {
+        try {
+            ActorCacheEntity entity = null;
+            ActorCacheEntity existingActorCache = actorCacheRepository.findByActorId(roleAssignment.getActorId());
+
+            if (existingActorCache != null) {
+                existingActorCache.setRoleAssignmentResponse(JacksonUtils.convertValueJsonNode(now()));
+                entity = existingActorCache;
+
+            } else {
+                entity = persistenceUtil.convertActorCacheToEntity(prepareActorCache(roleAssignment));
+            }
+            actorCacheRepository.save(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @NotNull
@@ -146,7 +189,7 @@ public class PersistenceService {
         return actorCache;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public ActorCacheEntity getActorCacheEntity(String actorId) {
 
         return actorCacheRepository.findByActorId(actorId);
@@ -169,20 +212,15 @@ public class PersistenceService {
 
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void deleteRoleAssignment(RoleAssignment roleAssignment) {
-        try {
         //Persist the role assignment entity
         RoleAssignmentEntity entity = persistenceUtil.convertRoleAssignmentToEntity(roleAssignment, false);
 
         roleAssignmentRepository.delete(entity);
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void deleteRoleAssignmentByActorId(String actorId) {
         roleAssignmentRepository.deleteByActorId(actorId);
     }
@@ -193,7 +231,7 @@ public class PersistenceService {
         return databseChangelogLockRepository.getById(id);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public List<RoleAssignment> getAssignmentsByActor(String actorId) {
 
         Set<RoleAssignmentEntity> roleAssignmentEntities = roleAssignmentRepository.findByActorId(actorId);
@@ -278,5 +316,27 @@ public class PersistenceService {
 
     }
 
+    public HistoryEntity persistHistory(RoleAssignment roleAssignment, Request request) {
+        try {
+            UUID roleAssignmentId = roleAssignment.getId();
+            UUID requestId = request.getId();
+
+            RequestEntity requestEntity = persistenceUtil.convertRequestToEntity(request);
+            if (requestId != null) {
+                requestEntity.setId(requestId);
+            }
+
+            HistoryEntity historyEntity = persistenceUtil.convertRoleAssignmentToHistoryEntity(
+                roleAssignment,
+                requestEntity
+            );
+            historyEntity.setId(Objects.requireNonNullElseGet(roleAssignmentId, UUID::randomUUID));
+            //Persist the history entity
+            return historyRepository.save(historyEntity);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }
