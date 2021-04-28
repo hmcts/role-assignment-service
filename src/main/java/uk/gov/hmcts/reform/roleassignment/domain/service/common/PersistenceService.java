@@ -171,9 +171,15 @@ public class PersistenceService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteRoleAssignment(RoleAssignment roleAssignment) {
+        try {
         //Persist the role assignment entity
         RoleAssignmentEntity entity = persistenceUtil.convertRoleAssignmentToEntity(roleAssignment, false);
+
         roleAssignmentRepository.delete(entity);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

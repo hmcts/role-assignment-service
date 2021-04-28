@@ -199,30 +199,36 @@ public class CreateRoleAssignmentService {
     }
 
     //Create New Assignment Records
+    @Transactional
     public void createNewAssignmentRecords(AssignmentRequest parsedAssignmentRequest) {
-        //Save new requested role in history table with CREATE_REQUESTED Status
-        long startTime = System.currentTimeMillis();
-        logger.info("createNewAssignmentRecords execution started at {}", startTime);
+        try {
+            //Save new requested role in history table with CREATE_REQUESTED Status
+            long startTime = System.currentTimeMillis();
+            logger.info("createNewAssignmentRecords execution started at {}", startTime);
 
-        insertRequestedRole(parsedAssignmentRequest, Status.CREATE_REQUESTED, emptyUUIds);
+            insertRequestedRole(parsedAssignmentRequest, Status.CREATE_REQUESTED, emptyUUIds);
 
-        validationModelService.validateRequest(parsedAssignmentRequest);
+            validationModelService.validateRequest(parsedAssignmentRequest);
 
-        //Save requested role in history table with APPROVED/REJECTED Status
-        for (RoleAssignment requestedAssignment : parsedAssignmentRequest.getRequestedRoles()) {
-            requestEntity.getHistoryEntities().add(persistenceUtil.prepareHistoryEntityForPersistance(
-                requestedAssignment,
-                parsedAssignmentRequest.getRequest()
-            ));
+            //Save requested role in history table with APPROVED/REJECTED Status
+            for (RoleAssignment requestedAssignment : parsedAssignmentRequest.getRequestedRoles()) {
+                requestEntity.getHistoryEntities().add(persistenceUtil.prepareHistoryEntityForPersistance(
+                    requestedAssignment,
+                    parsedAssignmentRequest.getRequest()
+                ));
+            }
+            persistenceService.persistHistoryEntities(requestEntity.getHistoryEntities());
+            //Persist request to update relationship with history entities
+            persistenceService.updateRequest(requestEntity);
+            logger.info(
+                " >> createNewAssignmentRecords execution finished at {} . Time taken = {} milliseconds",
+                System.currentTimeMillis(),
+                Math.subtractExact(System.currentTimeMillis(), startTime)
+            );
         }
-        persistenceService.persistHistoryEntities(requestEntity.getHistoryEntities());
-        //Persist request to update relationship with history entities
-        persistenceService.updateRequest(requestEntity);
-        logger.info(
-            " >> createNewAssignmentRecords execution finished at {} . Time taken = {} milliseconds",
-            System.currentTimeMillis(),
-            Math.subtractExact(System.currentTimeMillis(), startTime)
-        );
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void moveHistoryRecordsToLiveTable(RequestEntity requestEntity) {
@@ -257,6 +263,7 @@ public class CreateRoleAssignmentService {
         return reqEntity;
     }
 
+    @Transactional
     private void deleteLiveAssignments(Collection<RoleAssignment> existingAssignments) {
         long startTime = System.currentTimeMillis();
 
