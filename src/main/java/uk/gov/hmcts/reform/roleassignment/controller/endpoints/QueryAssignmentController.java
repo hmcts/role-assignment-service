@@ -17,9 +17,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.roleassignment.auditlog.LogAudit;
 import uk.gov.hmcts.reform.roleassignment.domain.model.QueryRequest;
+import uk.gov.hmcts.reform.roleassignment.domain.model.QueryRequests;
 import uk.gov.hmcts.reform.roleassignment.domain.model.RoleAssignmentResource;
+import uk.gov.hmcts.reform.roleassignment.domain.model.enums.Status;
 import uk.gov.hmcts.reform.roleassignment.domain.service.queryroles.QueryRoleAssignmentOrchestrator;
+import uk.gov.hmcts.reform.roleassignment.v1.TestDataBuilder;
 import uk.gov.hmcts.reform.roleassignment.v1.V1;
+import uk.gov.hmcts.reform.roleassignment.v1.V2;
 
 import static uk.gov.hmcts.reform.roleassignment.auditlog.AuditOperationType.SEARCH_ASSIGNMENTS;
 
@@ -61,6 +65,7 @@ public class QueryAssignmentController {
     @LogAudit(operationType = SEARCH_ASSIGNMENTS,
         id = "T(uk.gov.hmcts.reform.roleassignment.util.AuditLoggerUtil).searchAssignmentIds(#result)",
         correlationId = "#corsrelationId")
+
     public ResponseEntity<RoleAssignmentResource> retrieveRoleAssignmentsByQueryRequest(
                                  @RequestHeader(value = "x-correlation-id",
                                   required = false) String correlationId,
@@ -78,5 +83,42 @@ public class QueryAssignmentController {
             Math.subtractExact(System.currentTimeMillis(), startTime)
         );
         return response;
+    }
+
+    @PostMapping(
+        path = "/am/role-assignments/query",
+        consumes = V2.MediaType.POST_ASSIGNMENTS,
+        produces = V2.MediaType.POST_ASSIGNMENTS
+    )
+    @ApiOperation("Fetch Role assignment records by QueryRequest.")
+    @ApiResponses({
+        @ApiResponse(
+            code = 200,
+            message = "Success",
+            response = RoleAssignmentResource.class
+        ),
+        @ApiResponse(
+            code = 400,
+            message = V1.Error.BAD_REQUEST_INVALID_PARAMETER
+        ),
+
+    })
+    @LogAudit(operationType = SEARCH_ASSIGNMENTS,
+        id = "T(uk.gov.hmcts.reform.roleassignment.util.AuditLoggerUtil).searchAssignmentIds(#result)",
+        correlationId = "#corsrelationId")
+    public ResponseEntity<RoleAssignmentResource> retrieveRoleAssignmentsByQueryRequestV2(
+        @RequestHeader(value = "x-correlation-id",
+            required = false) String correlationId,
+        @RequestHeader(value = "pageNumber", required = false) Integer pageNumber,
+        @RequestHeader(value = "size", required = false) Integer size,
+        @RequestHeader(value = "sort", required = false) String sort,
+        @RequestHeader(value = "direction", required = false) String direction,
+        @Validated @RequestBody(required = true) QueryRequests queryRequests) throws Exception {
+
+        /*ResponseEntity<RoleAssignmentResource> response = queryRoleAssignmentOrchestrator
+            .retrieveRoleAssignmentsByQueryRequest(queryRequest, pageNumber, size, sort, direction);*/
+        //ResponseEntity<RoleAssignmentResource> response = new ResponseEntity<>()
+
+        return TestDataBuilder.buildResourceRoleAssignmentResponse(Status.LIVE);
     }
 }
