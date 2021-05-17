@@ -115,9 +115,7 @@ public class QueryAssignmentController {
         @RequestHeader(value = "direction", required = false) String direction,
         @Validated @RequestBody(required = true) QueryRequests queryRequests) throws Exception {
 
-        /*ResponseEntity<RoleAssignmentResource> response = queryRoleAssignmentOrchestrator
-            .retrieveRoleAssignmentsByQueryRequest(queryRequest, pageNumber, size, sort, direction);*/
-        //ResponseEntity<RoleAssignmentResource> response = new ResponseEntity<>()
+        //if LD_Flag_Search_V2 is false then return 403
 
         return TestDataBuilder.buildResourceRoleAssignmentResponse(Status.LIVE);
     }
