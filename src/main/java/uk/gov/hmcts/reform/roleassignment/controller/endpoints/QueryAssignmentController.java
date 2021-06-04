@@ -64,8 +64,9 @@ public class QueryAssignmentController {
     })
     @LogAudit(operationType = SEARCH_ASSIGNMENTS,
         id = "T(uk.gov.hmcts.reform.roleassignment.util.AuditLoggerUtil).searchAssignmentIds(#result)",
-        correlationId = "#corsrelationId")
-
+        correlationId = "#corsrelationId",
+        requestPayload = "#auditContextWith.requestPayload"
+    )
     public ResponseEntity<RoleAssignmentResource> retrieveRoleAssignmentsByQueryRequest(
                                  @RequestHeader(value = "x-correlation-id",
                                   required = false) String correlationId,
@@ -77,7 +78,7 @@ public class QueryAssignmentController {
         long startTime = System.currentTimeMillis();
         ResponseEntity<RoleAssignmentResource> response = queryRoleAssignmentOrchestrator
             .retrieveRoleAssignmentsByQueryRequest(queryRequest, pageNumber, size, sort, direction);
-        logger.info(
+        logger.debug(
             " >> retrieveRoleAssignmentsByQueryRequest execution finished at {} . Time taken = {} milliseconds",
             System.currentTimeMillis(),
             Math.subtractExact(System.currentTimeMillis(), startTime)
